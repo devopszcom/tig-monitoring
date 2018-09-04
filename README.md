@@ -8,3 +8,4 @@ Docker compose for TIG stack
 - Import dashboard id: 61 (Telegraf Metrics) (See: https://grafana.com/dashboards/61) 
 
 # Screenshot
+![Dashboard](https://github.com/devopszcom/tig-monitoring/raw/master/images/Dashboard.png)
