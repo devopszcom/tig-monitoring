@@ -1,0 +1,73 @@
+version: "3.3"
+
+services:
+  telegraf:
+    image: telegraf:1.5.2
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/rootfs/sys:ro
+      - /proc:/rootfs/proc:ro
+      - /etc:/rootfs/etc:ro
+    environment:
+      HOST_PROC: /rootfs/proc
+      HOST_SYS: /rootfs/sys
+      HOST_ETC: /rootfs/etc
+    configs:
+      - source: telegraf
+        target: /etc/telegraf/telegraf.conf
+    hostname: telegraf
+    networks:
+      - monitoring-net
+    deploy:
+      mode: global
+
+  influxdb:
+    image: influxdb:1.4.3-alpine
+    restart: always
+    volumes:
+      - "influxdb-data:/var/lib/influxdb"
+    environment:
+      - INFLUXDB_DB=telegraf
+    hostname: influxdb
+    networks:
+      - monitoring-net
+    deploy:
+      placement:
+        constraints:
+          - node.hostname==vm01
+
+  grafana:
+    image: grafana/grafana:5.0.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin@123
+      - GF_SERVER_ROOT_URL=http://192.168.1.222:3000
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=
+      - GF_SMTP_USER=
+      - GF_SMTP_PASSWORD=
+      - GF_SMTP_SKIP_VERIFY=true
+      - GF_SMTP_FROM_ADDRESS=
+      - GF_SMTP_FROM_NAME=Grafana
+    hostname: grafana
+    networks:
+      - monitoring-net
+    deploy:
+      placement:
+        constraints:
+          - node.hostname==vm01
+configs:
+  telegraf:
+    file: ./telegraf-conf/telegraf.conf
+  
+
+volumes:
+  influxdb-data:
+  grafana-data:
+networks:
+  monitoring-net:
+    # external: true
